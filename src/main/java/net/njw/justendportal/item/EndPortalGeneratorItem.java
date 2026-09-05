@@ -2,7 +2,6 @@ package net.njw.justendportal.item;
 
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
@@ -27,31 +26,21 @@ public class EndPortalGeneratorItem extends BlockItem {
         if (player == null) return InteractionResult.FAIL;
         var pending = PendingGeneratorData.get(stack);
         if (pending.isPresent()) {
-            if (level.dimension() != Level.END) {
-                if (!level.isClientSide()) player.displayClientMessage(Component.literal("대기 중인 엔드 포탈 생성기는 엔드에서만 사용할 수 있습니다."), true);
-                return InteractionResult.FAIL;
-            }
+            if (level.dimension() != Level.END) return InteractionResult.FAIL;
             if (level.isClientSide()) return InteractionResult.SUCCESS;
             var data = pending.get();
             if (!data.ownerId().equals(player.getUUID())) return InteractionResult.FAIL;
             if (!PendingGeneratorData.sourceExists(level.getServer(), data)) {
                 PendingGeneratorData.clear(stack);
-                player.displayClientMessage(Component.literal("연결된 오버월드 생성기를 찾을 수 없어 대기 상태를 해제했습니다."), true);
+                player.getInventory().setChanged();
                 return InteractionResult.FAIL;
             }
             stack.setCount(0);
             player.getInventory().setChanged();
-            player.displayClientMessage(Component.literal("엔드 포탈 생성기가 소모되었습니다."), true);
             return InteractionResult.SUCCESS;
         }
-        if (level.dimension() != Level.OVERWORLD) {
-            if (!level.isClientSide()) player.displayClientMessage(Component.literal("엔드 포탈 생성기는 먼저 오버월드에 설치해야 합니다."), true);
-            return InteractionResult.FAIL;
-        }
-        if (PendingGeneratorData.find(player).isPresent()) {
-            if (!level.isClientSide()) player.displayClientMessage(Component.literal("이미 대기 중인 엔드 포탈 생성기가 있습니다."), true);
-            return InteractionResult.FAIL;
-        }
+        if (level.dimension() != Level.OVERWORLD) return InteractionResult.FAIL;
+        if (PendingGeneratorData.find(player).isPresent()) return InteractionResult.FAIL;
         BlockPos placedPos = new BlockPlaceContext(context).getClickedPos();
         InteractionResult result = super.useOn(context);
         if (!result.consumesAction() || level.isClientSide()) return result;
