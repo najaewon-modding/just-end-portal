@@ -15,16 +15,12 @@ import net.njw.justendportal.util.PendingGeneratorData;
 
 public class EndPortalGeneratorBlock extends Block implements EntityBlock {
     public EndPortalGeneratorBlock(BlockBehaviour.Properties properties) { super(properties); }
-
-    @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new EndPortalGeneratorBlockEntity(pos, state); }
-
-    @Override
-    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+    @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new EndPortalGeneratorBlockEntity(pos, state); }
+    @Override public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof EndPortalGeneratorBlockEntity blockEntity && blockEntity.getOwnerId() != null && blockEntity.getLinkId() != null && level.getServer() != null) {
             PendingPortalSavedData.get(level.getServer()).clear(blockEntity.getOwnerId(), blockEntity.getLinkId());
             PendingGeneratorData.clearOwnerStack(level.getServer(), blockEntity.getOwnerId(), blockEntity.getLinkId());
-            PendingStateSync.sendToOwner(level.getServer(), blockEntity.getOwnerId(), false);
+            PendingStateSync.sendToOwner(level.getServer(), blockEntity.getOwnerId());
         }
         return super.playerWillDestroy(level, pos, state, player);
     }
