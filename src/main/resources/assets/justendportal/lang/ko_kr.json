@@ -1,3 +1,4 @@
 {
-  "block.justendportal.end_portal_generator": "엔드 포탈 생성기"
+  "block.justendportal.end_portal_generator": "엔드 포탈 생성기",
+  "item.justendportal.end_portal_generator.active": "엔드 포탈 생성기 (활성화)"
 }
