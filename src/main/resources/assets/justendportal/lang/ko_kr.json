@@ -1,5 +1,6 @@
 {
   "block.justendportal.end_portal_generator": "엔드 포탈 생성기",
-  "item.justendportal.end_portal_generator.active": "엔드 포탈 생성기 (활성화)",
-  "message.justendportal.portal_limit": "플레이어당 엔드 포탈은 한 개만 설치할 수 있습니다."
+  "item.justendportal.end_portal_generator.awaiting_link": "엔드 포탈 생성기 (연결 대기)",
+  "message.justendportal.portal_limit": "엔드 포탈은 플레이어당 한 개만 설치할 수 있습니다.",
+  "message.justendportal.awaiting_link_required": "엔드에서는 연결 대기 상태의 엔드 포탈 생성기만 설치할 수 있습니다."
 }
