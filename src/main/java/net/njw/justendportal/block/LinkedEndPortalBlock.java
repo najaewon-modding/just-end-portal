@@ -1,9 +1,7 @@
 package net.njw.justendportal.block;
 
-import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -71,18 +69,6 @@ public class LinkedEndPortalBlock extends EndPortalBlock {
         CustomEndPlatform.prepareArrival(destinationLevel, entry);
         if (!destinationLevel.getBlockState(destinationFloor).is(ModBlocks.ARRIVAL_PLATFORM.get())) return null;
         Vec3 position = Vec3.atBottomCenterOf(destinationFloor).add(0.0, !fromEnd && !(entity instanceof ServerPlayer) ? 2.0 : 1.0, 0.0);
-        float yRot;
-        float xRot;
-        Set<Relative> relatives;
-        if (!fromEnd) {
-            yRot = Direction.WEST.toYRot();
-            xRot = 0.0F;
-            relatives = Relative.union(Relative.DELTA, Set.of(Relative.X_ROT));
-        } else {
-            yRot = 0.0F;
-            xRot = 0.0F;
-            relatives = Relative.union(Relative.DELTA, Relative.ROTATION);
-        }
-        return new TeleportTransition(destinationLevel, position, Vec3.ZERO, yRot, xRot, relatives, TeleportTransition.PLAY_PORTAL_SOUND.then(TeleportTransition.PLACE_PORTAL_TICKET));
+        return new TeleportTransition(destinationLevel, position, Vec3.ZERO, 0.0F, 0.0F, Relative.union(Relative.DELTA, Relative.ROTATION), TeleportTransition.PLAY_PORTAL_SOUND.then(TeleportTransition.PLACE_PORTAL_TICKET));
     }
 }
