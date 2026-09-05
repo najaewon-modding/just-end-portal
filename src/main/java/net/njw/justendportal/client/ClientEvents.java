@@ -1,10 +1,13 @@
 package net.njw.justendportal.client;
 
+import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterRangeSelectItemModelPropertyEvent;
 import net.njw.justendportal.JustEndPortal;
+import net.njw.justendportal.client.model.GeneratorBobProperty;
 import net.njw.justendportal.client.renderer.EndPortalGeneratorRenderer;
 import net.njw.justendportal.registry.ModBlockEntities;
 
@@ -16,5 +19,10 @@ public final class ClientEvents {
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModBlockEntities.END_PORTAL_GENERATOR.get(), EndPortalGeneratorRenderer::new);
+    }
+
+    @SubscribeEvent
+    public static void registerRangeProperties(RegisterRangeSelectItemModelPropertyEvent event) {
+        event.register(Identifier.fromNamespaceAndPath(JustEndPortal.MODID, "generator_bob"), GeneratorBobProperty.MAP_CODEC);
     }
 }
