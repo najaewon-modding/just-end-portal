@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:popped_chorus_fruit",
+    "E": "minecraft:end_crystal",
+    "O": "minecraft:obsidian"
+  },
+  "pattern": [
+    "OCO",
+    "CEC",
+    "OCO"
+  ],
+  "result": {
+    "id": "justendportal:end_portal_generator"
+  }
+}
