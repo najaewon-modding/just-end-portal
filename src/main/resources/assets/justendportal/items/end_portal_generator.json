@@ -7,8 +7,32 @@
       "justendportal_pending": true
     },
     "on_true": {
-      "type": "minecraft:model",
-      "model": "justendportal:block/end_portal_generator_pending"
+      "type": "minecraft:composite",
+      "models": [
+        {
+          "type": "minecraft:model",
+          "model": "justendportal:block/end_portal_generator"
+        },
+        {
+          "type": "minecraft:range_dispatch",
+          "property": "justendportal:generator_bob",
+          "fallback": {
+            "type": "minecraft:model",
+            "model": "justendportal:item/end_portal_generator_core"
+          },
+          "entries": [
+            {"threshold": 0.0, "model": {"type": "minecraft:model", "model": "justendportal:item/end_portal_generator_core", "transformation": {"translation": [0.0, -0.06, 0.0]}}},
+            {"threshold": 0.125, "model": {"type": "minecraft:model", "model": "justendportal:item/end_portal_generator_core", "transformation": {"translation": [0.0, -0.045, 0.0]}}},
+            {"threshold": 0.25, "model": {"type": "minecraft:model", "model": "justendportal:item/end_portal_generator_core", "transformation": {"translation": [0.0, -0.03, 0.0]}}},
+            {"threshold": 0.375, "model": {"type": "minecraft:model", "model": "justendportal:item/end_portal_generator_core", "transformation": {"translation": [0.0, -0.015, 0.0]}}},
+            {"threshold": 0.5, "model": {"type": "minecraft:model", "model": "justendportal:item/end_portal_generator_core", "transformation": {"translation": [0.0, 0.0, 0.0]}}},
+            {"threshold": 0.625, "model": {"type": "minecraft:model", "model": "justendportal:item/end_portal_generator_core", "transformation": {"translation": [0.0, 0.015, 0.0]}}},
+            {"threshold": 0.75, "model": {"type": "minecraft:model", "model": "justendportal:item/end_portal_generator_core", "transformation": {"translation": [0.0, 0.03, 0.0]}}},
+            {"threshold": 0.875, "model": {"type": "minecraft:model", "model": "justendportal:item/end_portal_generator_core", "transformation": {"translation": [0.0, 0.045, 0.0]}}},
+            {"threshold": 0.98, "model": {"type": "minecraft:model", "model": "justendportal:item/end_portal_generator_core", "transformation": {"translation": [0.0, 0.06, 0.0]}}}
+          ]
+        }
+      ]
     },
     "on_false": {
       "type": "minecraft:model",
