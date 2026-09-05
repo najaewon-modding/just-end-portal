@@ -3,6 +3,7 @@ package net.njw.justendportal.item;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -85,8 +86,8 @@ public class EndPortalGeneratorItem extends BlockItem {
             BlockState placementState = getPlacementState(placeContext);
             if (placementState == null || !canPlace(placeContext, placementState)) return InteractionResult.FAIL;
             if (level.isClientSide()) return InteractionResult.SUCCESS;
-            if (!(player instanceof ServerPlayer serverPlayer)) return InteractionResult.FAIL;
-            PortalExpansion.Result expansion = PortalExpansion.expand(serverPlayer.serverLevel(), placedPos, serverPlayer);
+            if (!(player instanceof ServerPlayer serverPlayer) || !(level instanceof ServerLevel serverLevel)) return InteractionResult.FAIL;
+            PortalExpansion.Result expansion = PortalExpansion.expand(serverLevel, placedPos, serverPlayer);
             if (expansion == PortalExpansion.Result.SUCCESS) {
                 stack.shrink(1);
                 player.getInventory().setChanged();
