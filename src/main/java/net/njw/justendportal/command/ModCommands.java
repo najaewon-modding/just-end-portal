@@ -14,14 +14,16 @@ public final class ModCommands {
     public static void register(RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal("justendportal").then(Commands.literal("pending").executes(context -> {
             var player = context.getSource().getPlayerOrException();
-            var pending = PendingPortalSavedData.get(context.getSource().getServer()).getEntry(player.getUUID());
-            if (pending.isEmpty()) {
-                context.getSource().sendSuccess(() -> Component.literal("대기 중이거나 연결된 엔드 포탈이 없습니다."), false);
+            var entries = PendingPortalSavedData.get(context.getSource().getServer()).getEntries(player.getUUID());
+            if (entries.isEmpty()) {
+                context.getSource().sendSuccess(() -> Component.literal("대기 중이거나 생성된 엔드 포탈이 없습니다."), false);
                 return 0;
             }
-            var data = pending.get();
-            if (data.linked()) context.getSource().sendSuccess(() -> Component.literal("Linked End Portal | Overworld: " + data.pos().getX() + " " + data.pos().getY() + " " + data.pos().getZ() + " | End: " + data.endPos().getX() + " " + data.endPos().getY() + " " + data.endPos().getZ() + " | Link: " + data.linkId()), false);
-            else context.getSource().sendSuccess(() -> Component.literal("Pending End Portal Generator | Dimension: " + data.dimension() + " | Position: " + data.pos().getX() + " " + data.pos().getY() + " " + data.pos().getZ() + " | Link: " + data.linkId()), false);
+            for (var data : entries) {
+                String source = data.dimension();
+                if (data.linked()) context.getSource().sendSuccess(() -> Component.literal("Directional End Portal | Source Dimension: " + source + " | Portal: " + data.sourcePos().getX() + " " + data.sourcePos().getY() + " " + data.sourcePos().getZ() + " | Platform: " + data.targetPos().getX() + " " + data.targetPos().getY() + " " + data.targetPos().getZ() + " | Cells: " + data.cells().size() + " | Link: " + data.linkId()), false);
+                else context.getSource().sendSuccess(() -> Component.literal("Pending End Portal Generator | Source Dimension: " + source + " | Position: " + data.sourcePos().getX() + " " + data.sourcePos().getY() + " " + data.sourcePos().getZ() + " | Link: " + data.linkId()), false);
+            }
             return 1;
         }).then(Commands.literal("reset").executes(context -> {
             var player = context.getSource().getPlayerOrException();
@@ -34,7 +36,7 @@ public final class ModCommands {
                 changed = true;
             }
             player.getInventory().setChanged();
-            PendingStateSync.send(player, false);
+            PendingStateSync.send(player);
             boolean result = changed;
             context.getSource().sendSuccess(() -> Component.literal(result ? "Pending 데이터를 초기화했습니다." : "초기화할 Pending 데이터가 없습니다."), false);
             return changed ? 1 : 0;
