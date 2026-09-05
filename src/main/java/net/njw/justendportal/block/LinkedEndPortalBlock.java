@@ -42,32 +42,34 @@ public class LinkedEndPortalBlock extends EndPortalBlock {
                 UUID ownerId = linked.get().ownerId();
                 var entry = linked.get().entry();
                 UUID linkId = UUID.fromString(entry.linkId());
-                boolean fromOverworld = entry.dimension().equals(dimension) && entry.pos().equals(pos);
-                BlockPos otherPos = fromOverworld ? entry.endPos() : entry.pos();
-                ServerLevel otherLevel = serverLevel.getServer().getLevel(fromOverworld ? Level.END : Level.OVERWORLD);
+                boolean currentEnd = serverLevel.dimension() == Level.END;
+                ServerLevel overworld = serverLevel.getServer().getLevel(Level.OVERWORLD), end = serverLevel.getServer().getLevel(Level.END);
                 saved.clear(ownerId, linkId);
                 PendingStateSync.sendToOwner(serverLevel.getServer(), ownerId, false);
-                if (otherLevel != null) {
-                    otherLevel.getChunkAt(otherPos);
-                    if (otherLevel.getBlockState(otherPos).is(ModBlocks.LINKED_END_PORTAL.get())) otherLevel.destroyBlock(otherPos, false);
-                }
+                if (overworld != null) for (var cell : entry.cells()) removeCell(overworld, entry.worldPos(false, cell), serverLevel == overworld ? pos : null);
+                if (end != null) for (var cell : entry.cells()) removeCell(end, entry.worldPos(true, cell), serverLevel == end ? pos : null);
             }
         }
         return super.playerWillDestroy(level, pos, state, player);
     }
 
+    private static void removeCell(ServerLevel level, BlockPos pos, @Nullable BlockPos skipped) {
+        if (pos.equals(skipped)) return;
+        level.getChunkAt(pos);
+        if (level.getBlockState(pos).is(ModBlocks.LINKED_END_PORTAL.get())) level.destroyBlock(pos, false);
+    }
+
     @Override
     public @Nullable TeleportTransition getPortalDestination(ServerLevel currentLevel, Entity entity, BlockPos portalEntryPos) {
         String dimension = currentLevel.dimension().identifier().toString();
-        var linked = PendingPortalSavedData.get(currentLevel.getServer()).findLinked(dimension, portalEntryPos);
+        var linked = PendingPortalSavedData.get(currentLevel.getServer()).findLinkedOwned(dimension, portalEntryPos);
         if (linked.isEmpty()) return null;
-        var entry = linked.get();
-        boolean fromOverworld = entry.dimension().equals(dimension) && entry.pos().equals(portalEntryPos);
-        boolean fromEnd = Level.END.identifier().toString().equals(dimension) && entry.endPos().equals(portalEntryPos);
-        if (!fromOverworld && !fromEnd) return null;
-        ServerLevel destinationLevel = currentLevel.getServer().getLevel(fromOverworld ? Level.END : Level.OVERWORLD);
+        var entry = linked.get().entry();
+        var cell = linked.get().cell();
+        boolean fromEnd = currentLevel.dimension() == Level.END;
+        ServerLevel destinationLevel = currentLevel.getServer().getLevel(fromEnd ? Level.OVERWORLD : Level.END);
         if (destinationLevel == null) return null;
-        BlockPos destination = fromOverworld ? entry.endPos() : entry.pos();
+        BlockPos destination = entry.worldPos(!fromEnd, cell);
         destinationLevel.getChunkAt(destination);
         if (!destinationLevel.getBlockState(destination).is(ModBlocks.LINKED_END_PORTAL.get())) return null;
         Vec3 position = Vec3.atBottomCenterOf(destination).add(0.0, 1.0, 0.0);
