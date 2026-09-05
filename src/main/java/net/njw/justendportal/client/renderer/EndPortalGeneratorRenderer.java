@@ -20,8 +20,8 @@ public class EndPortalGeneratorRenderer extends AbstractEndPortalRenderer<EndPor
     @Override
     public void submit(EndPortalRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         float seconds = (float) (System.nanoTime() / 1_000_000_000.0);
-        float bob = Mth.sin(seconds * 1.45F) * 0.026F;
-        float sway = Mth.sin(seconds * 0.72F) * 1.25F;
+        float bob = Mth.sin(seconds * 2.9F) * 0.026F;
+        float sway = Mth.sin(seconds * 1.44F) * 1.25F;
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.6F + bob, 0.5F);
         poseStack.mulPose(Axis.YP.rotationDegrees(45.0F + sway));
