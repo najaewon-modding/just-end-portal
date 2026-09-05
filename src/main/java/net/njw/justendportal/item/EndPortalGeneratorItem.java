@@ -35,7 +35,6 @@ public class EndPortalGeneratorItem extends BlockItem {
             if (!data.ownerId().equals(player.getUUID()) || level.getServer() == null) return InteractionResult.FAIL;
             var saved = PendingPortalSavedData.get(level.getServer());
             if (!saved.matches(player.getUUID(), data.linkId())) { PendingGeneratorData.clear(stack); player.getInventory().setChanged(); return InteractionResult.FAIL; }
-            if (!PendingGeneratorData.sourceExists(level.getServer(), data)) { saved.clear(player.getUUID(), data.linkId()); PendingGeneratorData.clear(stack); player.getInventory().setChanged(); return InteractionResult.FAIL; }
             player.setItemInHand(context.getHand(), ItemStack.EMPTY);
             player.getInventory().setChanged();
             return InteractionResult.SUCCESS;
