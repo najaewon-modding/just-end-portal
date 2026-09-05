@@ -1,10 +1,10 @@
 {
   "block.njw_just_end_portal.end_portal_generator": "엔드 포탈 생성기",
+  "block.njw_just_end_portal.arrival_platform": "엔드 포탈 도착 플랫폼",
   "item.njw_just_end_portal.end_portal_generator.awaiting_link": "엔드 포탈 생성기 (연결 대기)",
-  "message.njw_just_end_portal.portal_limit": "엔드 포탈은 플레이어당 한 개만 설치할 수 있습니다.",
-  "message.njw_just_end_portal.awaiting_link_required": "엔드에서는 연결 대기 상태의 엔드 포탈 생성기만 설치할 수 있습니다.",
-  "message.njw_just_end_portal.awaiting_link_end_only": "연결 대기 상태의 엔드 포탈 생성기는 엔드에서만 설치할 수 있습니다.",
+  "message.njw_just_end_portal.portal_limit_dimension": "오버월드와 엔드에는 각각 하나의 출발 엔드 포탈만 설치할 수 있습니다.",
+  "message.njw_just_end_portal.awaiting_link_opposite_only": "연결 대기 상태의 엔드 포탈 생성기는 출발 포탈의 반대 차원에서만 설치할 수 있습니다.",
   "message.njw_just_end_portal.expansion_not_owner": "자신이 생성한 엔드 포탈만 확장할 수 있습니다.",
   "message.njw_just_end_portal.expansion_too_large": "엔드 포탈은 3 × 3 크기를 초과할 수 없습니다.",
-  "message.njw_just_end_portal.expansion_opposite_blocked": "반대 차원의 대응 위치가 비어 있어야 합니다."
+  "message.njw_just_end_portal.expansion_opposite_blocked": "반대 차원의 대응 플랫폼 위치가 비어 있어야 합니다."
 }
