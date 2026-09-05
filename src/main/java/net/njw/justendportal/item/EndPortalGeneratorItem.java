@@ -21,14 +21,13 @@ import net.njw.justendportal.data.PendingPortalSavedData;
 import net.njw.justendportal.network.PendingClientState;
 import net.njw.justendportal.network.PendingStateSync;
 import net.njw.justendportal.registry.ModBlocks;
+import net.njw.justendportal.util.CustomEndPlatform;
 import net.njw.justendportal.util.PendingGeneratorData;
 import net.njw.justendportal.util.PortalExpansion;
 
 public class EndPortalGeneratorItem extends BlockItem {
     public EndPortalGeneratorItem(Block block, Properties properties) { super(block, properties); }
-
-    @Override
-    public Component getName(ItemStack stack) { return PendingGeneratorData.get(stack).isPresent() ? Component.translatable("item.njw_just_end_portal.end_portal_generator.awaiting_link") : super.getName(stack); }
+    @Override public Component getName(ItemStack stack) { return PendingGeneratorData.get(stack).isPresent() ? Component.translatable("item.njw_just_end_portal.end_portal_generator.awaiting_link") : super.getName(stack); }
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
@@ -36,53 +35,58 @@ public class EndPortalGeneratorItem extends BlockItem {
         Level level = context.getLevel();
         Player player = context.getPlayer();
         if (player == null) return InteractionResult.FAIL;
+        String currentDimension = level.dimension().identifier().toString();
         var pending = PendingGeneratorData.get(stack);
         if (pending.isPresent()) {
-            if (level.dimension() != Level.END) {
-                player.sendOverlayMessage(Component.translatable("message.njw_just_end_portal.awaiting_link_end_only"));
+            var data = pending.get();
+            String targetDimension = Level.OVERWORLD.identifier().toString().equals(data.dimension()) ? Level.END.identifier().toString() : Level.END.identifier().toString().equals(data.dimension()) ? Level.OVERWORLD.identifier().toString() : "";
+            if (!currentDimension.equals(targetDimension)) {
+                player.sendOverlayMessage(Component.translatable("message.njw_just_end_portal.awaiting_link_opposite_only"));
                 return InteractionResult.FAIL;
             }
             BlockPlaceContext placeContext = new BlockPlaceContext(context);
             BlockState placementState = getPlacementState(placeContext);
             if (placementState == null || !canPlace(placeContext, placementState)) return InteractionResult.FAIL;
+            BlockPos targetPos = placeContext.getClickedPos();
+            if (!level.getBlockState(targetPos).isAir()) return InteractionResult.FAIL;
             if (level.isClientSide()) return InteractionResult.SUCCESS;
-            var data = pending.get();
-            if (!data.ownerId().equals(player.getUUID()) || level.getServer() == null) return InteractionResult.FAIL;
+            if (!data.ownerId().equals(player.getUUID()) || level.getServer() == null || !(level instanceof ServerLevel targetLevel)) return InteractionResult.FAIL;
             var saved = PendingPortalSavedData.get(level.getServer());
-            var source = saved.getEntry(player.getUUID());
+            var source = saved.getEntry(player.getUUID(), data.dimension());
             if (source.isEmpty() || !source.get().linkId().equals(data.linkId().toString()) || source.get().linked()) {
                 PendingGeneratorData.clear(stack);
-                if (player instanceof ServerPlayer serverPlayer) PendingStateSync.send(serverPlayer, source.isPresent());
+                if (player instanceof ServerPlayer serverPlayer) PendingStateSync.send(serverPlayer);
                 player.getInventory().setChanged();
                 return InteractionResult.FAIL;
             }
-            var overworld = level.getServer().getLevel(Level.OVERWORLD);
-            if (overworld == null) return InteractionResult.FAIL;
-            BlockPos sourcePos = source.get().pos();
-            overworld.getChunkAt(sourcePos);
-            if (!(overworld.getBlockEntity(sourcePos) instanceof EndPortalGeneratorBlockEntity blockEntity) || !blockEntity.matches(data.linkId(), player.getUUID())) return InteractionResult.FAIL;
-            BlockPos endPos = placeContext.getClickedPos();
-            BlockState oldEndState = level.getBlockState(endPos);
-            BlockState oldSourceState = overworld.getBlockState(sourcePos);
-            if (!level.setBlock(endPos, ModBlocks.LINKED_END_PORTAL.get().defaultBlockState(), Block.UPDATE_ALL)) return InteractionResult.FAIL;
-            if (!overworld.setBlock(sourcePos, ModBlocks.LINKED_END_PORTAL.get().defaultBlockState(), Block.UPDATE_ALL)) {
-                level.setBlock(endPos, oldEndState, Block.UPDATE_ALL);
+            ServerLevel sourceLevel = Level.END.identifier().toString().equals(data.dimension()) ? level.getServer().getLevel(Level.END) : level.getServer().getLevel(Level.OVERWORLD);
+            if (sourceLevel == null) return InteractionResult.FAIL;
+            BlockPos sourcePos = source.get().sourcePos();
+            sourceLevel.getChunkAt(sourcePos);
+            if (!(sourceLevel.getBlockEntity(sourcePos) instanceof EndPortalGeneratorBlockEntity blockEntity) || !blockEntity.matches(data.linkId(), player.getUUID())) return InteractionResult.FAIL;
+            BlockState oldTargetState = targetLevel.getBlockState(targetPos), oldSourceState = sourceLevel.getBlockState(sourcePos);
+            if (!CustomEndPlatform.createCell(targetLevel, targetPos)) return InteractionResult.FAIL;
+            if (!sourceLevel.setBlock(sourcePos, ModBlocks.LINKED_END_PORTAL.get().defaultBlockState(), Block.UPDATE_ALL)) {
+                targetLevel.setBlock(targetPos, oldTargetState, Block.UPDATE_ALL);
                 return InteractionResult.FAIL;
             }
-            if (!saved.link(player.getUUID(), data.linkId(), endPos)) {
-                overworld.setBlock(sourcePos, oldSourceState, Block.UPDATE_ALL);
-                level.setBlock(endPos, oldEndState, Block.UPDATE_ALL);
+            if (!saved.link(player.getUUID(), data.linkId(), targetPos)) {
+                sourceLevel.setBlock(sourcePos, oldSourceState, Block.UPDATE_ALL);
+                targetLevel.setBlock(targetPos, oldTargetState, Block.UPDATE_ALL);
                 return InteractionResult.FAIL;
             }
-            overworld.playSound(null, sourcePos, SoundEvents.END_PORTAL_SPAWN, SoundSource.BLOCKS, 1.0F, 1.0F);
-            level.playSound(null, endPos, SoundEvents.END_PORTAL_SPAWN, SoundSource.BLOCKS, 1.0F, 1.0F);
+            sourceLevel.playSound(null, sourcePos, SoundEvents.END_PORTAL_SPAWN, SoundSource.BLOCKS, 1.0F, 1.0F);
+            targetLevel.playSound(null, targetPos, SoundEvents.END_PORTAL_SPAWN, SoundSource.BLOCKS, 1.0F, 1.0F);
             player.setItemInHand(context.getHand(), ItemStack.EMPTY);
             player.getInventory().setChanged();
+            if (player instanceof ServerPlayer serverPlayer) PendingStateSync.send(serverPlayer);
             return InteractionResult.SUCCESS;
         }
+
+        if (level.dimension() != Level.OVERWORLD && level.dimension() != Level.END) return InteractionResult.FAIL;
         BlockPlaceContext placeContext = new BlockPlaceContext(context);
         BlockPos placedPos = placeContext.getClickedPos();
-        if ((level.dimension() == Level.OVERWORLD || level.dimension() == Level.END) && PortalExpansion.hasAdjacentPortal(level, placedPos)) {
+        if (PortalExpansion.hasAdjacentPortal(level, placedPos)) {
             BlockState placementState = getPlacementState(placeContext);
             if (placementState == null || !canPlace(placeContext, placementState)) return InteractionResult.FAIL;
             if (level.isClientSide()) return InteractionResult.SUCCESS;
@@ -98,14 +102,10 @@ public class EndPortalGeneratorItem extends BlockItem {
             else if (expansion == PortalExpansion.Result.OPPOSITE_BLOCKED) player.sendOverlayMessage(Component.translatable("message.njw_just_end_portal.expansion_opposite_blocked"));
             return InteractionResult.FAIL;
         }
-        if (level.dimension() == Level.END) {
-            player.sendOverlayMessage(Component.translatable("message.njw_just_end_portal.awaiting_link_required"));
-            return InteractionResult.FAIL;
-        }
-        if (level.dimension() != Level.OVERWORLD) return InteractionResult.FAIL;
-        boolean alreadyInstalled = level.isClientSide() ? PendingClientState.hasPending() || PendingGeneratorData.find(player).isPresent() : level.getServer() != null && PendingPortalSavedData.get(level.getServer()).getEntry(player.getUUID()).isPresent();
+
+        boolean alreadyInstalled = level.isClientSide() ? PendingClientState.hasEntry(level.dimension()) || PendingGeneratorData.find(player, currentDimension).isPresent() : level.getServer() != null && PendingPortalSavedData.get(level.getServer()).hasEntry(player.getUUID(), currentDimension);
         if (alreadyInstalled) {
-            player.sendOverlayMessage(Component.translatable("message.njw_just_end_portal.portal_limit"));
+            player.sendOverlayMessage(Component.translatable("message.njw_just_end_portal.portal_limit_dimension"));
             return InteractionResult.FAIL;
         }
         ItemStack retained = stack.copy();
@@ -113,11 +113,10 @@ public class EndPortalGeneratorItem extends BlockItem {
         InteractionResult result = super.useOn(context);
         if (!result.consumesAction() || level.isClientSide()) return result;
         UUID linkId = UUID.randomUUID();
-        String dimension = level.dimension().identifier().toString();
-        PendingGeneratorData.set(retained, linkId, player.getUUID(), dimension, placedPos);
+        PendingGeneratorData.set(retained, linkId, player.getUUID(), currentDimension, placedPos);
         if (level.getBlockEntity(placedPos) instanceof EndPortalGeneratorBlockEntity blockEntity) blockEntity.setPending(linkId, player.getUUID());
-        if (level.getServer() != null) PendingPortalSavedData.get(level.getServer()).put(player.getUUID(), linkId, dimension, placedPos);
-        if (player instanceof ServerPlayer serverPlayer) PendingStateSync.send(serverPlayer, true);
+        if (level.getServer() != null) PendingPortalSavedData.get(level.getServer()).put(player.getUUID(), linkId, currentDimension, placedPos);
+        if (player instanceof ServerPlayer serverPlayer) PendingStateSync.send(serverPlayer);
         player.setItemInHand(context.getHand(), retained);
         player.getInventory().setChanged();
         return result;
