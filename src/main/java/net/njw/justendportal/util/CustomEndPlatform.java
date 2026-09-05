@@ -16,11 +16,14 @@ public final class CustomEndPlatform {
     public static void prepareArrival(ServerLevel level, Entry entry) {
         for (var cell : entry.cells()) {
             BlockPos floor = entry.targetPos(cell);
-            if (!level.getBlockState(floor).is(ModBlocks.ARRIVAL_PLATFORM.get())) level.setBlock(floor, ModBlocks.ARRIVAL_PLATFORM.get().defaultBlockState(), Block.UPDATE_ALL);
+            if (!level.getBlockState(floor).is(ModBlocks.ARRIVAL_PLATFORM.get())) {
+                if (!level.getBlockState(floor).isAir()) level.destroyBlock(floor, true, null);
+                level.setBlock(floor, ModBlocks.ARRIVAL_PLATFORM.get().defaultBlockState(), Block.UPDATE_ALL);
+            }
             for (int y = 1; y <= CLEAR_HEIGHT; y++) {
                 BlockPos clear = floor.above(y);
                 if (!level.getBlockState(clear).isAir()) {
-                    level.destroyBlock(clear, false);
+                    level.destroyBlock(clear, true, null);
                     if (!level.getBlockState(clear).isAir()) level.setBlock(clear, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
                 }
             }
