@@ -1,4 +1,5 @@
 {
   "block.justendportal.end_portal_generator": "엔드 포탈 생성기",
-  "item.justendportal.end_portal_generator.active": "엔드 포탈 생성기 (활성화)"
+  "item.justendportal.end_portal_generator.active": "엔드 포탈 생성기 (활성화)",
+  "message.justendportal.portal_limit": "플레이어당 엔드 포탈은 한 개만 설치할 수 있습니다."
 }
