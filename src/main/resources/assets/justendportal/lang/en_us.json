@@ -1,4 +1,5 @@
 {
   "block.justendportal.end_portal_generator": "End Portal Generator",
-  "item.justendportal.end_portal_generator.active": "End Portal Generator (Active)"
+  "item.justendportal.end_portal_generator.active": "End Portal Generator (Active)",
+  "message.justendportal.portal_limit": "Only one End portal can be installed per player."
 }
