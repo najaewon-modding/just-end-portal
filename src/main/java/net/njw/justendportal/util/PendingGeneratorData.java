@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -23,11 +24,8 @@ public final class PendingGeneratorData {
     private static final String Y = "njw_just_end_portal_y";
     private static final String Z = "njw_just_end_portal_z";
 
-    public record Data(UUID linkId, UUID ownerId, String dimension, BlockPos pos) {
-    }
-
-    private PendingGeneratorData() {
-    }
+    public record Data(UUID linkId, UUID ownerId, String dimension, BlockPos pos) {}
+    private PendingGeneratorData() {}
 
     public static Optional<Data> get(ItemStack stack) {
         CustomData data = stack.get(DataComponents.CUSTOM_DATA);
@@ -40,9 +38,7 @@ public final class PendingGeneratorData {
             String dimension = tag.getStringOr(DIMENSION, "");
             BlockPos pos = new BlockPos(tag.getIntOr(X, 0), tag.getIntOr(Y, 0), tag.getIntOr(Z, 0));
             return Optional.of(new Data(linkId, ownerId, dimension, pos));
-        } catch (IllegalArgumentException ignored) {
-            return Optional.empty();
-        }
+        } catch (IllegalArgumentException ignored) { return Optional.empty(); }
     }
 
     public static void set(ItemStack stack, UUID linkId, UUID ownerId, String dimension, BlockPos pos) {
@@ -62,33 +58,20 @@ public final class PendingGeneratorData {
         CustomData data = stack.get(DataComponents.CUSTOM_DATA);
         if (data != null) {
             CompoundTag tag = data.copyTag();
-            tag.remove(PENDING);
-            tag.remove(LINK_ID);
-            tag.remove(OWNER_ID);
-            tag.remove(DIMENSION);
-            tag.remove(X);
-            tag.remove(Y);
-            tag.remove(Z);
-            if (tag.isEmpty()) stack.remove(DataComponents.CUSTOM_DATA);
-            else stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+            tag.remove(PENDING); tag.remove(LINK_ID); tag.remove(OWNER_ID); tag.remove(DIMENSION); tag.remove(X); tag.remove(Y); tag.remove(Z);
+            if (tag.isEmpty()) stack.remove(DataComponents.CUSTOM_DATA); else stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         }
         stack.remove(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
     }
 
-    public static Optional<Data> find(Player player) {
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            ItemStack stack = player.getInventory().getItem(i);
-            if (!stack.is(ModItems.END_PORTAL_GENERATOR.get())) continue;
-            Optional<Data> data = get(stack);
-            if (data.isPresent()) return data;
-        }
-        return Optional.empty();
-    }
+    public static Optional<Data> find(Player player) { for (int i = 0; i < player.getInventory().getContainerSize(); i++) { Optional<Data> data = get(player.getInventory().getItem(i)); if (data.isPresent()) return data; } return Optional.empty(); }
+    public static Optional<Data> find(Player player, String sourceDimension) { for (int i = 0; i < player.getInventory().getContainerSize(); i++) { ItemStack stack = player.getInventory().getItem(i); if (!stack.is(ModItems.END_PORTAL_GENERATOR.get())) continue; Optional<Data> data = get(stack); if (data.isPresent() && data.get().dimension().equals(sourceDimension)) return data; } return Optional.empty(); }
 
     public static boolean sourceExists(MinecraftServer server, Data data) {
-        if (server == null || !Level.OVERWORLD.identifier().toString().equals(data.dimension())) return false;
-        var level = server.getLevel(Level.OVERWORLD);
+        if (server == null) return false;
+        ServerLevel level = Level.END.identifier().toString().equals(data.dimension()) ? server.getLevel(Level.END) : Level.OVERWORLD.identifier().toString().equals(data.dimension()) ? server.getLevel(Level.OVERWORLD) : null;
         if (level == null) return false;
+        level.getChunkAt(data.pos());
         return level.getBlockEntity(data.pos()) instanceof EndPortalGeneratorBlockEntity blockEntity && blockEntity.matches(data.linkId(), data.ownerId());
     }
 
@@ -100,11 +83,7 @@ public final class PendingGeneratorData {
             ItemStack stack = player.getInventory().getItem(i);
             if (!stack.is(ModItems.END_PORTAL_GENERATOR.get())) continue;
             Optional<Data> data = get(stack);
-            if (data.isPresent() && data.get().linkId().equals(linkId)) {
-                clear(stack);
-                player.getInventory().setChanged();
-                return;
-            }
+            if (data.isPresent() && data.get().linkId().equals(linkId)) { clear(stack); player.getInventory().setChanged(); return; }
         }
     }
 }
