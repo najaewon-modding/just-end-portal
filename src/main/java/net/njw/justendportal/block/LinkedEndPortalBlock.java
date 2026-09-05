@@ -3,6 +3,7 @@ package net.njw.justendportal.block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EndPortalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -10,6 +11,8 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.BooleanOp;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.njw.justendportal.block.entity.LinkedEndPortalBlockEntity;
 import net.njw.justendportal.data.PendingPortalSavedData;
 import net.njw.justendportal.registry.ModBlocks;
@@ -20,6 +23,11 @@ public class LinkedEndPortalBlock extends EndPortalBlock {
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new LinkedEndPortalBlockEntity(pos, state); }
+
+    @Override
+    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+        if (entity.canUsePortal(false) && Shapes.joinIsNotEmpty(Shapes.create(entity.getBoundingBox().move(-pos.getX(), -pos.getY(), -pos.getZ())), state.getShape(level, pos), BooleanOp.AND)) entity.setAsInsidePortal(this, pos);
+    }
 
     @Override
     public @Nullable TeleportTransition getPortalDestination(ServerLevel currentLevel, Entity entity, BlockPos portalEntryPos) {
