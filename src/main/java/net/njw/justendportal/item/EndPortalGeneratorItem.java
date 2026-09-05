@@ -4,6 +4,8 @@ import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
@@ -67,6 +69,8 @@ public class EndPortalGeneratorItem extends BlockItem {
                 level.setBlock(endPos, oldEndState, Block.UPDATE_ALL);
                 return InteractionResult.FAIL;
             }
+            overworld.playSound(null, sourcePos, SoundEvents.END_PORTAL_SPAWN, SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.playSound(null, endPos, SoundEvents.END_PORTAL_SPAWN, SoundSource.BLOCKS, 1.0F, 1.0F);
             player.setItemInHand(context.getHand(), ItemStack.EMPTY);
             player.getInventory().setChanged();
             return InteractionResult.SUCCESS;
