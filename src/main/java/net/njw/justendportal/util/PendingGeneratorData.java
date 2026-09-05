@@ -15,13 +15,13 @@ import net.njw.justendportal.block.entity.EndPortalGeneratorBlockEntity;
 import net.njw.justendportal.registry.ModItems;
 
 public final class PendingGeneratorData {
-    private static final String PENDING = "justendportal_pending";
-    private static final String LINK_ID = "justendportal_link_id";
-    private static final String OWNER_ID = "justendportal_owner_id";
-    private static final String DIMENSION = "justendportal_dimension";
-    private static final String X = "justendportal_x";
-    private static final String Y = "justendportal_y";
-    private static final String Z = "justendportal_z";
+    private static final String PENDING = "njw_just_end_portal_pending";
+    private static final String LINK_ID = "njw_just_end_portal_link_id";
+    private static final String OWNER_ID = "njw_just_end_portal_owner_id";
+    private static final String DIMENSION = "njw_just_end_portal_dimension";
+    private static final String X = "njw_just_end_portal_x";
+    private static final String Y = "njw_just_end_portal_y";
+    private static final String Z = "njw_just_end_portal_z";
 
     public record Data(UUID linkId, UUID ownerId, String dimension, BlockPos pos) {
     }

@@ -28,7 +28,7 @@ public class EndPortalGeneratorItem extends BlockItem {
     public EndPortalGeneratorItem(Block block, Properties properties) { super(block, properties); }
 
     @Override
-    public Component getName(ItemStack stack) { return PendingGeneratorData.get(stack).isPresent() ? Component.translatable("item.justendportal.end_portal_generator.awaiting_link") : super.getName(stack); }
+    public Component getName(ItemStack stack) { return PendingGeneratorData.get(stack).isPresent() ? Component.translatable("item.njw_just_end_portal.end_portal_generator.awaiting_link") : super.getName(stack); }
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
@@ -39,7 +39,7 @@ public class EndPortalGeneratorItem extends BlockItem {
         var pending = PendingGeneratorData.get(stack);
         if (pending.isPresent()) {
             if (level.dimension() != Level.END) {
-                player.sendOverlayMessage(Component.translatable("message.justendportal.awaiting_link_end_only"));
+                player.sendOverlayMessage(Component.translatable("message.njw_just_end_portal.awaiting_link_end_only"));
                 return InteractionResult.FAIL;
             }
             BlockPlaceContext placeContext = new BlockPlaceContext(context);
@@ -93,19 +93,19 @@ public class EndPortalGeneratorItem extends BlockItem {
                 player.getInventory().setChanged();
                 return InteractionResult.SUCCESS;
             }
-            if (expansion == PortalExpansion.Result.NOT_OWNER) player.sendOverlayMessage(Component.translatable("message.justendportal.expansion_not_owner"));
-            else if (expansion == PortalExpansion.Result.TOO_LARGE) player.sendOverlayMessage(Component.translatable("message.justendportal.expansion_too_large"));
-            else if (expansion == PortalExpansion.Result.OPPOSITE_BLOCKED) player.sendOverlayMessage(Component.translatable("message.justendportal.expansion_opposite_blocked"));
+            if (expansion == PortalExpansion.Result.NOT_OWNER) player.sendOverlayMessage(Component.translatable("message.njw_just_end_portal.expansion_not_owner"));
+            else if (expansion == PortalExpansion.Result.TOO_LARGE) player.sendOverlayMessage(Component.translatable("message.njw_just_end_portal.expansion_too_large"));
+            else if (expansion == PortalExpansion.Result.OPPOSITE_BLOCKED) player.sendOverlayMessage(Component.translatable("message.njw_just_end_portal.expansion_opposite_blocked"));
             return InteractionResult.FAIL;
         }
         if (level.dimension() == Level.END) {
-            player.sendOverlayMessage(Component.translatable("message.justendportal.awaiting_link_required"));
+            player.sendOverlayMessage(Component.translatable("message.njw_just_end_portal.awaiting_link_required"));
             return InteractionResult.FAIL;
         }
         if (level.dimension() != Level.OVERWORLD) return InteractionResult.FAIL;
         boolean alreadyInstalled = level.isClientSide() ? PendingClientState.hasPending() || PendingGeneratorData.find(player).isPresent() : level.getServer() != null && PendingPortalSavedData.get(level.getServer()).getEntry(player.getUUID()).isPresent();
         if (alreadyInstalled) {
-            player.sendOverlayMessage(Component.translatable("message.justendportal.portal_limit"));
+            player.sendOverlayMessage(Component.translatable("message.njw_just_end_portal.portal_limit"));
             return InteractionResult.FAIL;
         }
         ItemStack retained = stack.copy();

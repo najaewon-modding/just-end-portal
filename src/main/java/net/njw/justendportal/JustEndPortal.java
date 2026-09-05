@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 
 @Mod(JustEndPortal.MODID)
 public class JustEndPortal {
-    public static final String MODID = "justendportal";
+    public static final String MODID = "njw_just_end_portal";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public JustEndPortal(IEventBus modEventBus, ModContainer modContainer) {
