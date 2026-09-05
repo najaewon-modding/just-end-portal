@@ -3,6 +3,7 @@ package net.njw.justendportal.item;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
@@ -13,6 +14,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.njw.justendportal.block.entity.EndPortalGeneratorBlockEntity;
 import net.njw.justendportal.data.PendingPortalSavedData;
+import net.njw.justendportal.network.PendingClientState;
+import net.njw.justendportal.network.PendingStateSync;
 import net.njw.justendportal.util.PendingGeneratorData;
 
 public class EndPortalGeneratorItem extends BlockItem {
@@ -34,13 +37,22 @@ public class EndPortalGeneratorItem extends BlockItem {
             var data = pending.get();
             if (!data.ownerId().equals(player.getUUID()) || level.getServer() == null) return InteractionResult.FAIL;
             var saved = PendingPortalSavedData.get(level.getServer());
-            if (!saved.matches(player.getUUID(), data.linkId())) { PendingGeneratorData.clear(stack); player.getInventory().setChanged(); return InteractionResult.FAIL; }
+            if (!saved.matches(player.getUUID(), data.linkId())) {
+                PendingGeneratorData.clear(stack);
+                if (player instanceof ServerPlayer serverPlayer) PendingStateSync.send(serverPlayer, false);
+                player.getInventory().setChanged();
+                return InteractionResult.FAIL;
+            }
             player.setItemInHand(context.getHand(), ItemStack.EMPTY);
             player.getInventory().setChanged();
             return InteractionResult.SUCCESS;
         }
         if (level.dimension() != Level.OVERWORLD) return InteractionResult.FAIL;
-        if (!level.isClientSide() && level.getServer() != null && PendingPortalSavedData.get(level.getServer()).getEntry(player.getUUID()).isPresent()) return InteractionResult.FAIL;
+        boolean alreadyInstalled = level.isClientSide() ? PendingClientState.hasPending() || PendingGeneratorData.find(player).isPresent() : level.getServer() != null && PendingPortalSavedData.get(level.getServer()).getEntry(player.getUUID()).isPresent();
+        if (alreadyInstalled) {
+            player.sendOverlayMessage(Component.translatable("message.justendportal.portal_limit"));
+            return InteractionResult.FAIL;
+        }
         BlockPos placedPos = new BlockPlaceContext(context).getClickedPos();
         ItemStack retained = stack.copy();
         retained.setCount(1);
@@ -51,6 +63,7 @@ public class EndPortalGeneratorItem extends BlockItem {
         PendingGeneratorData.set(retained, linkId, player.getUUID(), dimension, placedPos);
         if (level.getBlockEntity(placedPos) instanceof EndPortalGeneratorBlockEntity blockEntity) blockEntity.setPending(linkId, player.getUUID());
         if (level.getServer() != null) PendingPortalSavedData.get(level.getServer()).put(player.getUUID(), linkId, dimension, placedPos);
+        if (player instanceof ServerPlayer serverPlayer) PendingStateSync.send(serverPlayer, true);
         player.setItemInHand(context.getHand(), retained);
         player.getInventory().setChanged();
         return result;
