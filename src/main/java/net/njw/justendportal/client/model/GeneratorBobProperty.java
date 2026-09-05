@@ -10,15 +10,6 @@ import org.jspecify.annotations.Nullable;
 
 public record GeneratorBobProperty() implements RangeSelectItemModelProperty {
     public static final MapCodec<GeneratorBobProperty> MAP_CODEC = MapCodec.unit(new GeneratorBobProperty());
-
-    @Override
-    public float get(ItemStack stack, @Nullable ClientLevel level, @Nullable ItemOwner owner, int seed) {
-        double seconds = System.nanoTime() / 1_000_000_000.0;
-        return 0.5F + 0.5F * Mth.sin((float) (seconds * 3.0));
-    }
-
-    @Override
-    public MapCodec<GeneratorBobProperty> type() {
-        return MAP_CODEC;
-    }
+    @Override public float get(ItemStack stack, @Nullable ClientLevel level, @Nullable ItemOwner owner, int seed) { double seconds = System.nanoTime() / 1_000_000_000.0; return 0.5F + 0.5F * Mth.sin((float) (seconds * 1.6)); }
+    @Override public MapCodec<GeneratorBobProperty> type() { return MAP_CODEC; }
 }
