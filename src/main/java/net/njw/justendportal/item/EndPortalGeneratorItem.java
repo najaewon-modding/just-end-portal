@@ -12,10 +12,12 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.njw.justendportal.block.entity.EndPortalGeneratorBlockEntity;
 import net.njw.justendportal.data.PendingPortalSavedData;
 import net.njw.justendportal.network.PendingClientState;
 import net.njw.justendportal.network.PendingStateSync;
+import net.njw.justendportal.registry.ModBlocks;
 import net.njw.justendportal.util.PendingGeneratorData;
 
 public class EndPortalGeneratorItem extends BlockItem {
@@ -33,14 +35,36 @@ public class EndPortalGeneratorItem extends BlockItem {
         var pending = PendingGeneratorData.get(stack);
         if (pending.isPresent()) {
             if (level.dimension() != Level.END) return InteractionResult.FAIL;
+            BlockPlaceContext placeContext = new BlockPlaceContext(context);
+            BlockState placementState = getPlacementState(placeContext);
+            if (placementState == null || !canPlace(placeContext, placementState)) return InteractionResult.FAIL;
             if (level.isClientSide()) return InteractionResult.SUCCESS;
             var data = pending.get();
             if (!data.ownerId().equals(player.getUUID()) || level.getServer() == null) return InteractionResult.FAIL;
             var saved = PendingPortalSavedData.get(level.getServer());
-            if (!saved.matches(player.getUUID(), data.linkId())) {
+            var source = saved.getEntry(player.getUUID());
+            if (source.isEmpty() || !source.get().linkId().equals(data.linkId().toString()) || source.get().linked()) {
                 PendingGeneratorData.clear(stack);
-                if (player instanceof ServerPlayer serverPlayer) PendingStateSync.send(serverPlayer, false);
+                if (player instanceof ServerPlayer serverPlayer) PendingStateSync.send(serverPlayer, source.isPresent());
                 player.getInventory().setChanged();
+                return InteractionResult.FAIL;
+            }
+            var overworld = level.getServer().getLevel(Level.OVERWORLD);
+            if (overworld == null) return InteractionResult.FAIL;
+            BlockPos sourcePos = source.get().pos();
+            overworld.getChunkAt(sourcePos);
+            if (!(overworld.getBlockEntity(sourcePos) instanceof EndPortalGeneratorBlockEntity blockEntity) || !blockEntity.matches(data.linkId(), player.getUUID())) return InteractionResult.FAIL;
+            BlockPos endPos = placeContext.getClickedPos();
+            BlockState oldEndState = level.getBlockState(endPos);
+            BlockState oldSourceState = overworld.getBlockState(sourcePos);
+            if (!level.setBlock(endPos, ModBlocks.LINKED_END_PORTAL.get().defaultBlockState(), Block.UPDATE_ALL)) return InteractionResult.FAIL;
+            if (!overworld.setBlock(sourcePos, ModBlocks.LINKED_END_PORTAL.get().defaultBlockState(), Block.UPDATE_ALL)) {
+                level.setBlock(endPos, oldEndState, Block.UPDATE_ALL);
+                return InteractionResult.FAIL;
+            }
+            if (!saved.link(player.getUUID(), data.linkId(), endPos)) {
+                overworld.setBlock(sourcePos, oldSourceState, Block.UPDATE_ALL);
+                level.setBlock(endPos, oldEndState, Block.UPDATE_ALL);
                 return InteractionResult.FAIL;
             }
             player.setItemInHand(context.getHand(), ItemStack.EMPTY);
