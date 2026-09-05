@@ -21,6 +21,8 @@ public final class PendingPortalSavedData extends SavedData {
         public BlockPos endPos() { return new BlockPos(endX, endY, endZ); }
     }
 
+    public record OwnedEntry(UUID ownerId, Entry entry) {}
+
     private static final Codec<PendingPortalSavedData> CODEC = Codec.unboundedMap(Codec.STRING, Entry.CODEC).fieldOf("entries").xmap(PendingPortalSavedData::new, data -> data.entries).codec();
     public static final SavedDataType<PendingPortalSavedData> TYPE = new SavedDataType<>(Identifier.fromNamespaceAndPath(JustEndPortal.MODID, "pending_portals"), PendingPortalSavedData::new, CODEC);
     private final Map<String, Entry> entries;
@@ -32,6 +34,8 @@ public final class PendingPortalSavedData extends SavedData {
     public boolean matches(UUID ownerId, UUID linkId) { return getEntry(ownerId).map(entry -> entry.linkId().equals(linkId.toString())).orElse(false); }
     public void put(UUID ownerId, UUID linkId, String dimension, BlockPos pos) { entries.put(ownerId.toString(), new Entry(linkId.toString(), dimension, pos.getX(), pos.getY(), pos.getZ(), false, 0, 0, 0)); setDirty(); }
     public boolean link(UUID ownerId, UUID linkId, BlockPos endPos) { Entry entry = entries.get(ownerId.toString()); if (entry == null || !entry.linkId().equals(linkId.toString())) return false; entries.put(ownerId.toString(), new Entry(entry.linkId(), entry.dimension(), entry.x(), entry.y(), entry.z(), true, endPos.getX(), endPos.getY(), endPos.getZ())); setDirty(); return true; }
-    public Optional<Entry> findLinked(String dimension, BlockPos pos) { return entries.values().stream().filter(Entry::linked).filter(entry -> entry.dimension().equals(dimension) && entry.pos().equals(pos) || Level.END.identifier().toString().equals(dimension) && entry.endPos().equals(pos)).findFirst(); }
+    public Optional<OwnedEntry> findLinkedOwned(String dimension, BlockPos pos) { return entries.entrySet().stream().filter(mapEntry -> mapEntry.getValue().linked()).filter(mapEntry -> mapEntry.getValue().dimension().equals(dimension) && mapEntry.getValue().pos().equals(pos) || Level.END.identifier().toString().equals(dimension) && mapEntry.getValue().endPos().equals(pos)).map(mapEntry -> new OwnedEntry(UUID.fromString(mapEntry.getKey()), mapEntry.getValue())).findFirst(); }
+    public Optional<Entry> findLinked(String dimension, BlockPos pos) { return findLinkedOwned(dimension, pos).map(OwnedEntry::entry); }
     public boolean clear(UUID ownerId, UUID linkId) { Entry entry = entries.get(ownerId.toString()); if (entry == null || !entry.linkId().equals(linkId.toString())) return false; entries.remove(ownerId.toString()); setDirty(); return true; }
+    public boolean clear(UUID ownerId) { if (entries.remove(ownerId.toString()) == null) return false; setDirty(); return true; }
 }
