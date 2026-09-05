@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.blockentity.AbstractEndPortalRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.state.EndPortalRenderState;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.njw.justendportal.block.entity.EndPortalGeneratorBlockEntity;
 
 public class EndPortalGeneratorRenderer extends AbstractEndPortalRenderer<EndPortalGeneratorBlockEntity, EndPortalRenderState> {
