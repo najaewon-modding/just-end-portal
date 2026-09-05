@@ -33,11 +33,15 @@ neoForge {
     runs {
         client {
             client()
+            programArgument '--username'
+            programArgument 'Player1'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         clientSecondary {
             client()
+            programArgument '--username'
+            programArgument 'Player2'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
