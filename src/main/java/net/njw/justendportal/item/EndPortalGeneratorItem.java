@@ -24,7 +24,7 @@ public class EndPortalGeneratorItem extends BlockItem {
     public EndPortalGeneratorItem(Block block, Properties properties) { super(block, properties); }
 
     @Override
-    public Component getName(ItemStack stack) { return PendingGeneratorData.get(stack).isPresent() ? Component.translatable("item.justendportal.end_portal_generator.active") : super.getName(stack); }
+    public Component getName(ItemStack stack) { return PendingGeneratorData.get(stack).isPresent() ? Component.translatable("item.justendportal.end_portal_generator.awaiting_link") : super.getName(stack); }
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
@@ -70,6 +70,10 @@ public class EndPortalGeneratorItem extends BlockItem {
             player.setItemInHand(context.getHand(), ItemStack.EMPTY);
             player.getInventory().setChanged();
             return InteractionResult.SUCCESS;
+        }
+        if (level.dimension() == Level.END) {
+            player.sendOverlayMessage(Component.translatable("message.justendportal.awaiting_link_required"));
+            return InteractionResult.FAIL;
         }
         if (level.dimension() != Level.OVERWORLD) return InteractionResult.FAIL;
         boolean alreadyInstalled = level.isClientSide() ? PendingClientState.hasPending() || PendingGeneratorData.find(player).isPresent() : level.getServer() != null && PendingPortalSavedData.get(level.getServer()).getEntry(player.getUUID()).isPresent();
