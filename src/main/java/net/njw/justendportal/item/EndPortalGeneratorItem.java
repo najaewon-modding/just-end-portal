@@ -41,7 +41,8 @@ public class EndPortalGeneratorItem extends BlockItem {
             var data = pending.get();
             String targetDimension = Level.OVERWORLD.identifier().toString().equals(data.dimension()) ? Level.END.identifier().toString() : Level.END.identifier().toString().equals(data.dimension()) ? Level.OVERWORLD.identifier().toString() : "";
             if (!currentDimension.equals(targetDimension)) {
-                player.sendOverlayMessage(Component.translatable("message.njw_just_end_portal.awaiting_link_opposite_only"));
+                String key = Level.OVERWORLD.identifier().toString().equals(targetDimension) ? "message.njw_just_end_portal.awaiting_link_overworld_required" : "message.njw_just_end_portal.awaiting_link_end_required";
+                player.sendOverlayMessage(Component.translatable(key));
                 return InteractionResult.FAIL;
             }
             BlockPlaceContext placeContext = new BlockPlaceContext(context);
@@ -105,7 +106,12 @@ public class EndPortalGeneratorItem extends BlockItem {
 
         boolean alreadyInstalled = level.isClientSide() ? PendingClientState.hasEntry(level.dimension()) || PendingGeneratorData.find(player, currentDimension).isPresent() : level.getServer() != null && PendingPortalSavedData.get(level.getServer()).hasEntry(player.getUUID(), currentDimension);
         if (alreadyInstalled) {
-            player.sendOverlayMessage(Component.translatable("message.njw_just_end_portal.portal_limit_dimension"));
+            boolean linked;
+            if (level.isClientSide()) linked = PendingGeneratorData.find(player, currentDimension).isEmpty();
+            else linked = level.getServer() != null && PendingPortalSavedData.get(level.getServer()).getEntry(player.getUUID(), currentDimension).map(PendingPortalSavedData.Entry::linked).orElse(false);
+            boolean overworld = level.dimension() == Level.OVERWORLD;
+            String key = linked ? overworld ? "message.njw_just_end_portal.portal_linked_overworld_exists" : "message.njw_just_end_portal.portal_linked_end_exists" : overworld ? "message.njw_just_end_portal.generator_overworld_exists" : "message.njw_just_end_portal.generator_end_exists";
+            player.sendOverlayMessage(Component.translatable(key));
             return InteractionResult.FAIL;
         }
         ItemStack retained = stack.copy();
