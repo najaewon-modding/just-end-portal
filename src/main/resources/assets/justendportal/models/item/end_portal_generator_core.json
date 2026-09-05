@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "portal": "minecraft:block/end_portal_frame_eye",
+    "particle": "minecraft:block/end_portal_frame_eye"
+  },
+  "elements": [
+    {
+      "from": [6, 6, 6],
+      "to": [10, 10, 10],
+      "rotation": {"origin": [8, 8, 8], "axis": "z", "angle": 45, "rescale": true},
+      "shade": false,
+      "light_emission": 15,
+      "faces": {
+        "down": {"texture": "#portal"},
+        "up": {"texture": "#portal"},
+        "north": {"texture": "#portal"},
+        "south": {"texture": "#portal"},
+        "west": {"texture": "#portal"},
+        "east": {"texture": "#portal"}
+      }
+    }
+  ]
+}
