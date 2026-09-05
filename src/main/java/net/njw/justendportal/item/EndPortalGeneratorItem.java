@@ -36,7 +36,10 @@ public class EndPortalGeneratorItem extends BlockItem {
         if (player == null) return InteractionResult.FAIL;
         var pending = PendingGeneratorData.get(stack);
         if (pending.isPresent()) {
-            if (level.dimension() != Level.END) return InteractionResult.FAIL;
+            if (level.dimension() != Level.END) {
+                player.sendOverlayMessage(Component.translatable("message.justendportal.awaiting_link_end_only"));
+                return InteractionResult.FAIL;
+            }
             BlockPlaceContext placeContext = new BlockPlaceContext(context);
             BlockState placementState = getPlacementState(placeContext);
             if (placementState == null || !canPlace(placeContext, placementState)) return InteractionResult.FAIL;
