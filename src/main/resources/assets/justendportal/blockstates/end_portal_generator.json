@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "justendportal:block/end_portal_generator"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "justendportal:block/end_portal_generator"
+  }
+}
