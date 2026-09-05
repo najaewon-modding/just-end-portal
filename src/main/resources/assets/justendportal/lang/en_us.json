@@ -1,3 +1,4 @@
 {
-  "block.justendportal.end_portal_generator": "End Portal Generator"
+  "block.justendportal.end_portal_generator": "End Portal Generator",
+  "item.justendportal.end_portal_generator.active": "End Portal Generator (Active)"
 }
