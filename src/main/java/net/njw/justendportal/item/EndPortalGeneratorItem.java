@@ -21,6 +21,7 @@ import net.njw.justendportal.network.PendingClientState;
 import net.njw.justendportal.network.PendingStateSync;
 import net.njw.justendportal.registry.ModBlocks;
 import net.njw.justendportal.util.PendingGeneratorData;
+import net.njw.justendportal.util.PortalExpansion;
 
 public class EndPortalGeneratorItem extends BlockItem {
     public EndPortalGeneratorItem(Block block, Properties properties) { super(block, properties); }
@@ -78,6 +79,24 @@ public class EndPortalGeneratorItem extends BlockItem {
             player.getInventory().setChanged();
             return InteractionResult.SUCCESS;
         }
+        BlockPlaceContext placeContext = new BlockPlaceContext(context);
+        BlockPos placedPos = placeContext.getClickedPos();
+        if ((level.dimension() == Level.OVERWORLD || level.dimension() == Level.END) && PortalExpansion.hasAdjacentPortal(level, placedPos)) {
+            BlockState placementState = getPlacementState(placeContext);
+            if (placementState == null || !canPlace(placeContext, placementState)) return InteractionResult.FAIL;
+            if (level.isClientSide()) return InteractionResult.SUCCESS;
+            if (!(player instanceof ServerPlayer serverPlayer)) return InteractionResult.FAIL;
+            PortalExpansion.Result expansion = PortalExpansion.expand(serverPlayer.serverLevel(), placedPos, serverPlayer);
+            if (expansion == PortalExpansion.Result.SUCCESS) {
+                stack.shrink(1);
+                player.getInventory().setChanged();
+                return InteractionResult.SUCCESS;
+            }
+            if (expansion == PortalExpansion.Result.NOT_OWNER) player.sendOverlayMessage(Component.translatable("message.justendportal.expansion_not_owner"));
+            else if (expansion == PortalExpansion.Result.TOO_LARGE) player.sendOverlayMessage(Component.translatable("message.justendportal.expansion_too_large"));
+            else if (expansion == PortalExpansion.Result.OPPOSITE_BLOCKED) player.sendOverlayMessage(Component.translatable("message.justendportal.expansion_opposite_blocked"));
+            return InteractionResult.FAIL;
+        }
         if (level.dimension() == Level.END) {
             player.sendOverlayMessage(Component.translatable("message.justendportal.awaiting_link_required"));
             return InteractionResult.FAIL;
@@ -88,7 +107,6 @@ public class EndPortalGeneratorItem extends BlockItem {
             player.sendOverlayMessage(Component.translatable("message.justendportal.portal_limit"));
             return InteractionResult.FAIL;
         }
-        BlockPos placedPos = new BlockPlaceContext(context).getClickedPos();
         ItemStack retained = stack.copy();
         retained.setCount(1);
         InteractionResult result = super.useOn(context);
