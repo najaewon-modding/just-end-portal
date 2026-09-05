@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.state.EndPortalRenderState;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.util.Mth;
 import net.njw.justendportal.block.entity.EndPortalGeneratorBlockEntity;
 
 public class EndPortalGeneratorRenderer extends AbstractEndPortalRenderer<EndPortalGeneratorBlockEntity, EndPortalRenderState> {
@@ -21,8 +22,10 @@ public class EndPortalGeneratorRenderer extends AbstractEndPortalRenderer<EndPor
 
     @Override
     public void submit(EndPortalRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+        float seconds = (float) (System.nanoTime() / 1_000_000_000.0);
+        float bob = Mth.sin(seconds * 3.0F) * 0.035F;
         poseStack.pushPose();
-        poseStack.translate(0.5F, 0.6F, 0.5F);
+        poseStack.translate(0.5F, 0.6F + bob, 0.5F);
         poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
         poseStack.mulPose(Axis.ZP.rotationDegrees(45.0F));
         poseStack.scale(0.28F, 0.28F, 0.28F);
