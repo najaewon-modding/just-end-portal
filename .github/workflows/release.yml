@@ -24,30 +24,49 @@ jobs:
         run: |
           VERSION=$(grep '^version=' .github/release-request | cut -d= -f2-)
           TARGET=$(grep '^target=' .github/release-request | cut -d= -f2-)
+          MODE=$(grep '^mode=' .github/release-request | cut -d= -f2- || true)
+          MODE=${MODE:-release}
           test -n "$VERSION"
-          test -n "$TARGET"
-          cp ".github/release-notes/${VERSION}.md" /tmp/release-notes.md
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+
+      - name: Cancel existing release
+        if: steps.release.outputs.mode == 'cancel'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: gh release delete "v${VERSION}" --repo "$GITHUB_REPOSITORY" --cleanup-tag --yes
+
+      - name: Prepare release notes
+        if: steps.release.outputs.mode != 'cancel'
+        run: cp ".github/release-notes/${{ steps.release.outputs.version }}.md" /tmp/release-notes.md
 
       - name: Checkout release target
-        run: git checkout "${{ steps.release.outputs.target }}"
+        if: steps.release.outputs.mode != 'cancel'
+        run: |
+          test -n "${{ steps.release.outputs.target }}"
+          git checkout "${{ steps.release.outputs.target }}"
 
       - name: Setup JDK 25
+        if: steps.release.outputs.mode != 'cancel'
         uses: actions/setup-java@v4
         with:
           java-version: '25'
           distribution: 'temurin'
 
       - name: Setup Gradle
+        if: steps.release.outputs.mode != 'cancel'
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build release JAR
+        if: steps.release.outputs.mode != 'cancel'
         run: |
           chmod +x ./gradlew
           ./gradlew build
 
       - name: Create GitHub release
+        if: steps.release.outputs.mode != 'cancel'
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.release.outputs.version }}
