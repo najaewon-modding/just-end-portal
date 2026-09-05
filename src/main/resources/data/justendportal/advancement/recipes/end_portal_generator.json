@@ -1,0 +1,21 @@
+{
+  "parent": "minecraft:end/enter_end_gateway",
+  "criteria": {
+    "entered_end_gateway": {
+      "conditions": {
+        "block": "minecraft:end_gateway"
+      },
+      "trigger": "minecraft:enter_block"
+    }
+  },
+  "rewards": {
+    "recipes": [
+      "justendportal:end_portal_generator"
+    ]
+  },
+  "requirements": [
+    [
+      "entered_end_gateway"
+    ]
+  ]
+}
