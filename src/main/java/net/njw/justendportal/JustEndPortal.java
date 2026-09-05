@@ -5,7 +5,10 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.njw.justendportal.command.ModCommands;
+import net.njw.justendportal.event.GameplayEvents;
 import net.njw.justendportal.registry.ModBlockEntities;
 import net.njw.justendportal.registry.ModBlocks;
 import net.njw.justendportal.registry.ModItems;
@@ -21,6 +24,8 @@ public class JustEndPortal {
         ModItems.ITEMS.register(modEventBus);
         ModBlockEntities.BLOCK_ENTITY_TYPES.register(modEventBus);
         modEventBus.addListener(this::addCreative);
+        NeoForge.EVENT_BUS.addListener(ModCommands::register);
+        NeoForge.EVENT_BUS.addListener(GameplayEvents::onBlockBreak);
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
